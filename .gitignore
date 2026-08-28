@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.vercel/
+.npm-cache/
+tmp/
+output/
+outputs/
+work/
+tool-check.txt
+
+.env
+.env.*
+!.env.example
+
+*.log
+.DS_Store
+Thumbs.db

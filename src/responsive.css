@@ -1,0 +1,152 @@
+/* Shared responsive guardrails for every dark and light route. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: clip;
+}
+
+body,
+.site {
+  overflow-x: clip;
+}
+
+.site :where(img, picture, video, svg, canvas) {
+  max-width: 100%;
+}
+
+.site :where(
+  .dark-intro > *,
+  .light-intro > *,
+  .projects-archive__inner > *,
+  .research-notes__inner > *,
+  .learning-archive__inner > *,
+  .experience-archive__inner > *,
+  .experience-page__inner > *,
+  .research-paper__inner > *,
+  .course-page__inner > *,
+  .leadership-community__inner > *,
+  .milestone-archive__inner > *,
+  .about-section__inner > *,
+  .contact-section__inner > *,
+  .site-footer__inner > *
+) {
+  min-width: 0;
+}
+
+.site :where(
+  p,
+  li,
+  dd,
+  figcaption,
+  small,
+  label,
+  .contact-section__email,
+  .site-footer__links a,
+  .site-footer__socials a
+) {
+  overflow-wrap: anywhere;
+}
+
+/* Tablet portrait: give the hero enough room before the mobile stack begins. */
+@media (min-width: 761px) and (max-width: 900px) {
+  .topbar {
+    width: calc(100% - 48px);
+  }
+
+  .dark-intro {
+    grid-template-columns: minmax(0, 1fr) minmax(236px, 0.8fr);
+    gap: clamp(28px, 4vw, 48px);
+  }
+
+  .dark-intro__details {
+    grid-column: 1 / -1;
+    max-width: 660px;
+  }
+}
+
+/* Small phones: preserve the composition while keeping controls and cards inside the viewport. */
+@media (max-width: 420px) {
+  .topbar {
+    width: calc(100% - 24px);
+    padding-left: 10px;
+    padding-right: 6px;
+  }
+
+  .signature {
+    width: 104px;
+  }
+
+  .nav-actions {
+    gap: 2px;
+  }
+
+  .site--light .light-intro {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .profile-card-wrap {
+    width: min(100%, 300px);
+  }
+
+  .profile-card__body {
+    padding: 16px 17px 19px;
+  }
+
+  .profile-card__details div {
+    align-items: flex-start;
+    gap: 7px;
+  }
+
+  .profile-card__details dd {
+    min-width: 0;
+    font-size: 11px;
+  }
+
+  .about-section__inner,
+  .contact-section__inner,
+  .site-footer__inner {
+    width: calc(100% - 24px);
+  }
+
+  .about-section__portrait {
+    min-height: 420px;
+  }
+
+  .site-footer__inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 360px) {
+  .topbar {
+    height: 62px;
+  }
+
+  .signature {
+    width: 94px;
+  }
+
+  .icon-button,
+  .menu-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .nav {
+    top: 70px;
+  }
+
+  .site--light .light-intro {
+    padding-top: 94px;
+    padding-bottom: 52px;
+  }
+
+  .profile-card-wrap {
+    width: min(100%, 282px);
+  }
+
+  .light-intro__content {
+    padding-top: 44px;
+  }
+}
