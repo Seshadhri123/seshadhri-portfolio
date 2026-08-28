@@ -2743,12 +2743,52 @@ function MomentSlideshow({ slides, label }) {
   return (
     <div className="experience-milestone__media experience-milestone__slideshow" aria-label={label}>
       {slides.map((slide, index) => (
-        <img key={slide.src} className={index === activeSlide ? 'experience-milestone__slide experience-milestone__slide--active' : 'experience-milestone__slide'} src={slide.src} alt={slide.alt} />
+        <img key={slide.src} className={index === activeSlide ? 'experience-milestone__slide experience-milestone__slide--active' : 'experience-milestone__slide'} src={slide.src} alt={slide.alt} loading="lazy" decoding="async" />
       ))}
       <div className="experience-milestone__dots" aria-label={`${label} image selector`}>
         {slides.map((slide, index) => <button key={slide.src} type="button" className={index === activeSlide ? 'experience-milestone__dot experience-milestone__dot--active' : 'experience-milestone__dot'} onClick={() => setActiveSlide(index)} aria-label={`Show image ${index + 1} of ${slides.length}`} aria-pressed={index === activeSlide} />)}
       </div>
     </div>
+  )
+}
+
+function DeferredAutoplayVideo({ src, className, ariaLabel }) {
+  const videoRef = useRef(null)
+  const [shouldLoad, setShouldLoad] = useState(false)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return undefined
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setShouldLoad(true)
+        return
+      }
+      video.pause()
+    }, { rootMargin: '240px 0px' })
+
+    observer.observe(video)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (shouldLoad) videoRef.current?.play().catch(() => {})
+  }, [shouldLoad])
+
+  return (
+    <video
+      ref={videoRef}
+      className={className}
+      autoPlay={shouldLoad}
+      loop
+      muted
+      playsInline
+      preload={shouldLoad ? 'metadata' : 'none'}
+      aria-label={ariaLabel}
+    >
+      {shouldLoad && <source src={src} type="video/mp4" />}
+    </video>
   )
 }
 
@@ -2802,7 +2842,7 @@ function ExperienceArchive({ isExiting, onExperienceSelect, experiences }) {
 
           <article className="experience-card" key={activeExperience.organisation}>
             <div className={activeExperience.slug === 'kryos-gaming' ? 'experience-card__media experience-card__media--dark' : 'experience-card__media'} aria-label={`${activeExperience.organisation} logo`}>
-              <img src={activeExperience.visual} alt={activeExperience.visualAlt} />
+              <img src={activeExperience.visual} alt={activeExperience.visualAlt} loading="lazy" decoding="async" />
             </div>
             <div className="experience-card__content">
               <div className="experience-card__topline"><span>{activeExperience.kind}</span><i>{activeExperience.period}</i></div>
@@ -2827,7 +2867,7 @@ function ExperienceArchive({ isExiting, onExperienceSelect, experiences }) {
               <span>02</span><strong>People first</strong><p>The collaborations and communities that keep the work connected to people.</p><i>COMMUNITY / MOMENT</i>
             </article>
             <article>
-              <div className="experience-milestone__media experience-milestone__media--video"><video src={nextChapterEditing} autoPlay loop muted playsInline aria-label="Seshadhri editing a video" /></div>
+              <div className="experience-milestone__media experience-milestone__media--video"><DeferredAutoplayVideo src={nextChapterEditing} ariaLabel="Seshadhri editing a video" /></div>
               <span>03</span><strong>Next chapter</strong><p>Always learning, editing, experimenting, and turning the next idea into something real.</p><i>STAY TUNED!</i>
             </article>
           </div>
@@ -3221,7 +3261,7 @@ function LeadershipCommunity({ isExiting, onLeadershipSelect, chapters }) {
         <div className={`leadership-community__grid leadership-community__grid--${chapters.length}`}>
           {chapters.map((chapter) => (
             <article key={chapter.title} className="leadership-card" style={{ '--leadership-accent': chapter.accent }}>
-              <div className={`leadership-card__visual${chapter.visual ? ' leadership-card__visual--image' : ''}${chapter.visualVariant ? ` leadership-card__visual--${chapter.visualVariant}` : ''}`} aria-label={chapter.visualAlt || 'Reserved photo space'}>{chapter.visual ? <img src={chapter.visual} alt={chapter.visualAlt} /> : <><span>PHOTO SPACE</span><b aria-hidden="true">✦</b></>}</div>
+              <div className={`leadership-card__visual${chapter.visual ? ' leadership-card__visual--image' : ''}${chapter.visualVariant ? ` leadership-card__visual--${chapter.visualVariant}` : ''}`} aria-label={chapter.visualAlt || 'Reserved photo space'}>{chapter.visual ? <img src={chapter.visual} alt={chapter.visualAlt} loading="lazy" decoding="async" /> : <><span>PHOTO SPACE</span><b aria-hidden="true">✦</b></>}</div>
               <div className="leadership-card__meta"><span>{chapter.number}</span><i>{chapter.role}</i></div>
               <h3>{chapter.title}</h3>
               <p>{chapter.copy}</p>
@@ -3251,7 +3291,7 @@ function AboutSection({ isExiting }) {
           </div>
         </div>
         <figure className="about-section__portrait">
-          <img src={aboutPortrait} alt="Seshadhri taking a mirror selfie" />
+          <img src={aboutPortrait} alt="Seshadhri taking a mirror selfie" loading="lazy" decoding="async" />
           <figcaption>One person, a lot of curiosity, and usually too many tabs open.</figcaption>
         </figure>
       </div>
@@ -4361,17 +4401,19 @@ function LightIntro({ isRevealed, isExiting, onPlay }) {
         <article className="profile-card">
           <video
             className="profile-card__media"
-            src={introVideo}
             poster={portrait}
             autoPlay
             muted
             playsInline
             loop
+            preload="auto"
             aria-label="A short introduction video of Seshadhri"
             onTimeUpdate={(event) => {
               if (event.currentTarget.currentTime >= 25) event.currentTarget.currentTime = 0
             }}
-          />
+          >
+            <source src={introVideo} type="video/mp4" />
+          </video>
           <div className="profile-card__body">
             <p className="profile-card__eyebrow">01 · The Builder</p>
             <h1>This is who turns<br />curiosity into <em>systems.</em></h1>
