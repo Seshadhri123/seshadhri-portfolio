@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import signature from './assets/seshadhri-signature.png'
 import resumePdf from './assets/seshadhri-murugavel-resume.pdf'
 import portrait from './assets/seshadhri-portrait.jpg'
-import introVideo from './assets/seshadhri-intro.mp4'
+import beyondAiPortrait from './assets/beyond-ai-portrait.png'
 import loaderCharacter from './assets/loader-character.png'
 import journeyRoad from './assets/journey-road-empty.png'
 import certificateMathMachineLearning from './assets/certificate-mathematics-for-machine-learning-linear-algebra-coursera.png'
@@ -4399,21 +4399,12 @@ function LightIntro({ isRevealed, isExiting, onPlay }) {
         <a className="profile-card-back" href="/play" onClick={onPlay} aria-label="Open Seshadhri's personal story"><span>PLAY ↗</span></a>
         <div className="binder-clip" aria-hidden="true"><i /><b /><i /></div>
         <article className="profile-card">
-          <video
+          <img
             className="profile-card__media"
-            poster={portrait}
-            autoPlay
-            muted
-            playsInline
-            loop
-            preload="auto"
-            aria-label="A short introduction video of Seshadhri"
-            onTimeUpdate={(event) => {
-              if (event.currentTarget.currentTime >= 25) event.currentTarget.currentTime = 0
-            }}
-          >
-            <source src={introVideo} type="video/mp4" />
-          </video>
+            src={beyondAiPortrait}
+            alt="Seshadhri smiling in a sunlit room"
+            decoding="async"
+          />
           <div className="profile-card__body">
             <p className="profile-card__eyebrow">01 · The Builder</p>
             <h1>This is who turns<br />curiosity into <em>systems.</em></h1>
