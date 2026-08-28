@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import signature from './assets/seshadhri-signature.png'
 import resumePdf from './assets/seshadhri-murugavel-resume.pdf'
 import portrait from './assets/seshadhri-portrait.jpg'
-import introVideo from './assets/seshadhri-intro.mov'
+import introVideo from './assets/seshadhri-intro.mp4'
 import loaderCharacter from './assets/loader-character.png'
 import journeyRoad from './assets/journey-road-empty.png'
 import certificateMathMachineLearning from './assets/certificate-mathematics-for-machine-learning-linear-algebra-coursera.png'
@@ -1707,12 +1707,9 @@ function App() {
 
   useEffect(() => {
     const updateActiveNavItem = () => {
-      if (activeResearchPage) {
-        setActiveNavIndex(2)
-        return
-      }
-
-      if (activeCoursePage) {
+      // Detail and archive pages do not contain the homepage sections, so their
+      // parent navigation item is set directly.
+      if (activeResearchPage || activeCoursePage || activeProjectPage || isResearchArchivePage || isLearningArchivePage) {
         setActiveNavIndex(2)
         return
       }
@@ -1722,33 +1719,29 @@ function App() {
         return
       }
 
-      const projects = document.getElementById('projects')
-      const experience = document.getElementById('experience')
-      const about = document.getElementById('about')
-      const contact = document.getElementById('contact')
-      if (contact && contact.getBoundingClientRect().top <= window.innerHeight * .48) {
-        setActiveNavIndex(4)
-        return
-      }
+      if (lightMode || playPage || currentPath !== '/') return
 
-      if (about && about.getBoundingClientRect().top <= window.innerHeight * .48) {
-        setActiveNavIndex(3)
-        return
-      }
+      // Use the final section that has crossed the reading line. The previous
+      // version checked Experience first, which meant it remained selected for
+      // every section further down the page.
+      const readingLine = Math.max(120, window.innerHeight * .44)
+      const sectionNavigation = [
+        { id: 'experience', index: 1 },
+        { id: 'leadership', index: 1 },
+        { id: 'projects', index: 2 },
+        { id: 'research-notes', index: 2 },
+        { id: 'learning-archive', index: 2 },
+        { id: 'about', index: 3 },
+        { id: 'contact', index: 4 },
+      ]
 
-      if (experience && experience.getBoundingClientRect().top <= window.innerHeight * .48) {
-        setActiveNavIndex(1)
-        return
-      }
+      let nextIndex = 0
+      sectionNavigation.forEach(({ id, index }) => {
+        const section = document.getElementById(id)
+        if (section && section.getBoundingClientRect().top <= readingLine) nextIndex = index
+      })
 
-      if (!projects) {
-        setActiveNavIndex(0)
-        return
-      }
-
-      const projectsBounds = projects.getBoundingClientRect()
-      const viewingProjects = projectsBounds.top <= window.innerHeight * .48
-      setActiveNavIndex(viewingProjects ? 2 : 0)
+      setActiveNavIndex((currentIndex) => currentIndex === nextIndex ? currentIndex : nextIndex)
     }
 
     updateActiveNavItem()
@@ -1758,7 +1751,7 @@ function App() {
       window.removeEventListener('scroll', updateActiveNavItem)
       window.removeEventListener('resize', updateActiveNavItem)
     }
-  }, [activeCoursePage, activeExperiencePage, activeResearchPage, activeLeadershipPage, lightMode])
+  }, [activeCoursePage, activeExperiencePage, activeResearchPage, activeLeadershipPage, activeProjectPage, isResearchArchivePage, isLearningArchivePage, lightMode, playPage, currentPath])
 
   useEffect(() => {
     const updateCourseRoute = () => {
@@ -1773,6 +1766,29 @@ function App() {
     window.addEventListener('popstate', updateCourseRoute)
     return () => window.removeEventListener('popstate', updateCourseRoute)
   }, [])
+
+  const scrollToHomeSection = (target, behavior = 'smooth') => {
+    // Wait for the homepage to render before looking for a section. This makes
+    // navigation reliable from archive and detail pages as well as from home.
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        document.getElementById(target)?.scrollIntoView({ behavior, block: 'start' })
+      })
+    })
+  }
+
+  const navigateToHomeSection = (target, behavior = 'smooth') => {
+    window.history.pushState(null, '', `/#${target}`)
+    setCurrentPath('/')
+    setCourseSlug(null)
+    setExperienceSlug(null)
+    setResearchSlug(null)
+    setLeadershipSlug(null)
+    setProjectSlug(null)
+    setPlayPage(null)
+    setMenuOpen(false)
+    scrollToHomeSection(target, behavior)
+  }
 
   const scrollToHome = (event) => {
     event.preventDefault()
@@ -1850,26 +1866,17 @@ function App() {
 
   const returnToProjects = (event) => {
     event.preventDefault()
-    window.history.pushState(null, '', '/#projects')
-    setCurrentPath('/')
-    setProjectSlug(null)
-    window.setTimeout(() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' }), 0)
+    navigateToHomeSection('projects')
   }
 
   const returnToResearchNotes = (event) => {
     event.preventDefault()
-    window.history.pushState(null, '', '/#research-notes')
-    setCurrentPath('/')
-    setResearchSlug(null)
-    window.setTimeout(() => document.getElementById('research-notes')?.scrollIntoView({ behavior: 'smooth' }), 0)
+    navigateToHomeSection('research-notes')
   }
 
   const returnToLearningArchive = (event) => {
     event.preventDefault()
-    window.history.pushState(null, '', '/#learning-archive')
-    setCurrentPath('/')
-    setCourseSlug(null)
-    window.setTimeout(() => document.getElementById('learning-archive')?.scrollIntoView({ behavior: 'smooth' }), 0)
+    navigateToHomeSection('learning-archive')
   }
 
   const openExperiencePage = (event, slug) => {
@@ -1944,24 +1951,7 @@ function App() {
     setActiveNavIndex(parentIndex)
     setHoveredNavIndex(null)
     setOpenNavMenu(null)
-    setMenuOpen(false)
-
-    const goToSection = () => document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    const isDetailPage = activeCoursePage || activeExperiencePage || activeResearchPage || activeLeadershipPage || activeProjectPage
-
-    if (isDetailPage) {
-      window.history.pushState(null, '', `/#${target}`)
-      setCurrentPath('/')
-      setCourseSlug(null)
-      setExperienceSlug(null)
-      setResearchSlug(null)
-      setLeadershipSlug(null)
-      setProjectSlug(null)
-      window.setTimeout(goToSection, 0)
-      return
-    }
-
-    goToSection()
+    navigateToHomeSection(target)
   }
 
   const returnToLightHome = (event) => {
@@ -1976,18 +1966,12 @@ function App() {
 
   const returnToLeadership = (event) => {
     event.preventDefault()
-    window.history.pushState(null, '', '/#leadership')
-    setCurrentPath('/')
-    setLeadershipSlug(null)
-    window.setTimeout(() => document.getElementById('leadership')?.scrollIntoView({ behavior: 'smooth' }), 0)
+    navigateToHomeSection('leadership')
   }
 
   const returnToExperience = (event) => {
     event.preventDefault()
-    window.history.pushState(null, '', '/#experience')
-    setCurrentPath('/')
-    setExperienceSlug(null)
-    window.setTimeout(() => document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth' }), 0)
+    navigateToHomeSection('experience')
   }
 
   const handleNavClick = (event, item) => {
@@ -2005,58 +1989,19 @@ function App() {
 
     if (item === 'Projects') {
       event.preventDefault()
-      setCurrentPath('/')
-      if (activeCoursePage || activeExperiencePage || activeResearchPage || activeLeadershipPage || playPage) {
-        window.history.pushState(null, '', '/#projects')
-        setCourseSlug(null)
-        setExperienceSlug(null)
-        setResearchSlug(null)
-        setLeadershipSlug(null)
-        setProjectSlug(null)
-        setPlayPage(null)
-        window.setTimeout(() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' }), 0)
-      } else {
-        document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })
-      }
-      setMenuOpen(false)
+      navigateToHomeSection('projects')
       return
     }
 
     if (item === 'Experience') {
       event.preventDefault()
-      setCurrentPath('/')
-      if (activeCoursePage || activeExperiencePage || activeResearchPage || activeLeadershipPage || playPage) {
-        window.history.pushState(null, '', '/#experience')
-        setCourseSlug(null)
-        setExperienceSlug(null)
-        setResearchSlug(null)
-        setLeadershipSlug(null)
-        setProjectSlug(null)
-        setPlayPage(null)
-        window.setTimeout(() => document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth' }), 0)
-      } else {
-        document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth' })
-      }
-      setMenuOpen(false)
+      navigateToHomeSection('experience')
       return
     }
 
     if (item === 'About' || item === 'Contact') {
       event.preventDefault()
-      setCurrentPath('/')
-      if (activeCoursePage || activeExperiencePage || activeResearchPage || activeLeadershipPage || playPage) {
-        window.history.pushState(null, '', `/#${item.toLowerCase()}`)
-        setCourseSlug(null)
-        setExperienceSlug(null)
-        setResearchSlug(null)
-        setLeadershipSlug(null)
-        setProjectSlug(null)
-        setPlayPage(null)
-        window.setTimeout(() => document.getElementById(item.toLowerCase())?.scrollIntoView({ behavior: 'smooth' }), 0)
-      } else {
-        document.getElementById(item.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })
-      }
-      setMenuOpen(false)
+      navigateToHomeSection(item.toLowerCase())
     }
   }
 
